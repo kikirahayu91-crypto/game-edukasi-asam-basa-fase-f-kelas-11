@@ -1,0 +1,635 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Acid-Base Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: dokumen gim untuk guru. Skala pH (indikator universal) menjadi peta: tiap zona memakai satu warna indikator, dari merah (asam) ke ungu (basa). */
+:root {
+  --bg: #f4f7f6;
+  --surface: #ffffff;
+  --surface-2: #eaf1ef;
+  --fg: #11241f;
+  --muted: #4d625c;
+  --line: #d3dfdb;
+  --accent: #0b6b6b;
+  --on-accent: #ffffff;
+  --z1: #cb3535;
+  --z2: #b95a0c;
+  --z3: #2a8a3d;
+  --z4: #2e63c4;
+  --zb: #7a3fb8;
+  --on-z: #ffffff;
+  --ok: #1f7a3a;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1917; --surface: #13262a; --surface-2: #1a3135; --fg: #e4efec; --muted: #9bb2ab;
+    --line: #29433f; --accent: #55c9c1; --on-accent: #0c1917;
+    --z1: #f07676; --z2: #f2a04e; --z3: #63c77b; --z4: #7ba5f4; --zb: #bb91ea; --on-z: #0c1917; --ok: #6fd08a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1917; --surface: #13262a; --surface-2: #1a3135; --fg: #e4efec; --muted: #9bb2ab;
+  --line: #29433f; --accent: #55c9c1; --on-accent: #0c1917;
+  --z1: #f07676; --z2: #f2a04e; --z3: #63c77b; --z4: #7ba5f4; --zb: #bb91ea; --on-z: #0c1917; --ok: #6fd08a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-block: 0 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 62rem; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.3rem, 7vw, 4.2rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+sub, sup { font-size: 0.72em; line-height: 0; }
+.mono { font-family: var(--font-mono); }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+/* header */
+header { padding-block: 2.5rem 1.5rem; display: grid; gap: 1.1rem; }
+.lead { font-size: 1.15rem; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.3rem 0.65rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+.phstrip { margin-top: 0.6rem; }
+.phbar { height: 14px; border-radius: 3px; background: linear-gradient(90deg, #d93a3a 0%, #e8832a 20%, #e6c53a 38%, #4caf50 50%, #2f9fbf 68%, #2f66c8 82%, #7a3fb8 100%); }
+.phticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); padding-top: 0.3rem; }
+
+/* nav */
+nav.jump { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 11; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; gap: 0.4rem; overflow-x: auto; padding-block: 0.6rem; }
+nav.jump button { flex: 0 0 auto; font: inherit; font-size: 0.9rem; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.8rem; cursor: pointer; }
+nav.jump button:hover { border-color: var(--accent); }
+button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+section { padding-block: 3rem 0.5rem; display: grid; gap: 1.4rem; scroll-margin-top: 4.5rem; }
+
+/* map */
+.story { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.3rem 1.4rem; }
+.map { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.8rem; position: relative; }
+.map::before { content: ""; position: absolute; left: 5%; right: 5%; top: 1.45rem; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--z1), var(--z2), var(--z3), var(--z4), var(--zb)); }
+.map li { position: relative; display: grid; gap: 0.35rem; justify-items: center; text-align: center; min-width: 0; }
+.node { width: 2.9rem; height: 2.9rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; color: var(--on-z); background: var(--zc); border: 4px solid var(--bg); position: relative; }
+.map li b { font-family: var(--font-display); font-size: 1.02rem; line-height: 1.2; }
+.map li span { font-size: 0.88rem; color: var(--muted); line-height: 1.35; }
+
+/* zone color hookup */
+.c1 { --zc: var(--z1); } .c2 { --zc: var(--z2); } .c3 { --zc: var(--z3); } .c4 { --zc: var(--z4); } .cb { --zc: var(--zb); }
+
+/* tables */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 0.7rem 0.9rem; vertical-align: top; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); font-weight: 500; }
+td.num, th.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zdot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--zc); margin-right: 0.45rem; }
+
+/* toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; justify-content: space-between; }
+.toggle { font: inherit; font-weight: 600; font-size: 0.95rem; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 6px; padding: 0.55rem 1rem; cursor: pointer; }
+.toggle[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+/* zone block */
+.zone { display: grid; gap: 1rem; }
+.zonehead { display: flex; align-items: center; gap: 0.9rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--zc); }
+.zonehead .node { border-color: var(--bg); flex: 0 0 auto; }
+.zonehead p { color: var(--muted); font-size: 0.97rem; }
+.qgrid { display: grid; gap: 0.9rem; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.1rem; display: grid; gap: 0.7rem; min-width: 0; }
+.qtop { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; justify-content: space-between; }
+.tag { font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--zc); font-weight: 500; }
+.pts { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
+.opts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
+.opts li { display: flex; gap: 0.6rem; }
+.opts li > :first-child { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); min-width: 1.4rem; padding-top: 0.12rem; }
+.box::before { content: "\2610"; font-size: 1.05rem; }
+.cards { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.card { font-family: var(--font-mono); font-size: 0.88rem; padding: 0.3rem 0.7rem; background: var(--surface-2); border: 1px dashed var(--muted); border-radius: 5px; }
+.blank { color: var(--muted); font-family: var(--font-mono); }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+.pair ol, .pair ul { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.2rem; }
+.pair h4, .q h4 { margin: 0 0 0.3rem; font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.steps { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.2rem; }
+.work { font-family: var(--font-mono); font-size: 0.9rem; background: var(--surface-2); border-radius: 6px; padding: 0.7rem 0.9rem; display: grid; gap: 0.25rem; }
+
+details.key { border-top: 1px solid var(--line); padding-top: 0.6rem; }
+details.key summary { cursor: pointer; font-weight: 600; font-size: 0.93rem; color: var(--accent); list-style: none; display: inline-flex; gap: 0.4rem; align-items: center; }
+details.key summary::-webkit-details-marker { display: none; }
+details.key summary::before { content: "\25B8"; transition: transform 0.15s; }
+details.key[open] summary::before { transform: rotate(90deg); }
+details.key .ans { margin-top: 0.55rem; padding: 0.7rem 0.9rem; background: color-mix(in srgb, var(--ok) 12%, var(--surface)); border-radius: 6px; font-size: 0.95rem; display: grid; gap: 0.3rem; }
+.ans b { color: var(--ok); }
+.note { color: var(--muted); font-size: 0.9rem; }
+
+/* boss */
+.boss { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.4rem; display: grid; gap: 1.1rem; }
+.case { padding: 0.9rem 1.1rem; background: var(--surface-2); border-radius: 6px; }
+.fase { display: grid; gap: 0.7rem; }
+.fase .q { background: var(--bg); }
+
+/* guide */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; display: grid; gap: 0.6rem; align-content: start; min-width: 0; }
+.panel ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.3rem; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; }
+.timeline li { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 0.8rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--line); align-items: baseline; }
+.timeline li:last-child { border-bottom: 0; }
+.timeline .t { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
+.timeline .d { font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); }
+footer { padding-top: 3rem; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 720px) {
+  .map { grid-template-columns: 1fr; gap: 1rem; }
+  .map::before { left: 1.45rem; right: auto; top: 1.5rem; bottom: 1.5rem; width: 4px; height: auto; background: linear-gradient(180deg, var(--z1), var(--z2), var(--z3), var(--z4), var(--zb)); }
+  .map li { grid-template-columns: 2.9rem 1fr; justify-items: start; text-align: left; column-gap: 0.9rem; align-items: center; }
+  .map li .node { grid-row: span 2; }
+  .pair { grid-template-columns: 1fr; }
+  .timeline li { grid-template-columns: 5rem 1fr; }
+  .timeline .d { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { details.key summary::before { transition: none; } }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Gim edukasi · Kimia · Kelas XI (Fase F)</div>
+  <h1>Acid-Base Quest: Misteri Pulau Proton</h1>
+  <p class="lead">Gim papan berkelompok tentang larutan asam basa. Siswa menjelajahi empat zona, mengumpulkan empat Kristal Proton, lalu menghadapi Naga Limbah Netralis dengan soal analisis.</p>
+  <div class="chips">
+    <span class="chip">Larutan asam basa</span>
+    <span class="chip">90 menit · 1 pertemuan</span>
+    <span class="chip">4–5 siswa per tim</span>
+    <span class="chip">Suhu soal: 25 °C</span>
+  </div>
+  <div class="phstrip" aria-hidden="true">
+    <div class="phbar"></div>
+    <div class="phticks"><span>pH 0 · asam</span><span>pH 7 · netral</span><span>pH 14 · basa</span></div>
+  </div>
+  <p class="note">Durasi belum diisi pada permintaan, jadi rancangan memakai 90 menit. Pembagian waktu ada di bagian Panduan Guru dan mudah disesuaikan.</p>
+</header>
+
+<nav class="jump" aria-label="Lompat ke bagian">
+  <button type="button" data-go="peta">Peta</button>
+  <button type="button" data-go="misi">Misi</button>
+  <button type="button" data-go="z1">Zona 1</button>
+  <button type="button" data-go="z2">Zona 2</button>
+  <button type="button" data-go="z3">Zona 3</button>
+  <button type="button" data-go="z4">Zona 4</button>
+  <button type="button" data-go="boss">Boss</button>
+  <button type="button" data-go="guru">Panduan guru</button>
+</nav>
+
+<!-- PETA -->
+<section id="peta">
+  <div class="eyebrow">Peta &amp; tema</div>
+  <h2>Pulau Proton</h2>
+  <div class="story">
+    <p>Di tengah lautan ada Pulau Proton, tempat ion H<sup>+</sup> dan OH<sup>−</sup> hidup seimbang. Suatu malam Naga Limbah Netralis menyerang. Sungai menjadi terlalu asam, tanah terlalu basa, dan semua indikator alam berubah warna. Para Kimiawan Muda dipanggil untuk menjelajahi empat zona, mengumpulkan empat Kristal Proton, lalu mengalahkan sang naga dengan analisis kimia.</p>
+  </div>
+  <ol class="map">
+    <li class="c1"><span class="node">1</span><b>Lembah Donor-Akseptor</b><span>Konsep asam-basa dan pasangan konjugasi</span></li>
+    <li class="c2"><span class="node">2</span><b>Hutan Kekuatan</b><span>Asam basa kuat dan lemah, Ka, Kb</span></li>
+    <li class="c3"><span class="node">3</span><b>Samudra pH</b><span>Hitung pH, pOH, pengenceran</span></li>
+    <li class="c4"><span class="node">4</span><b>Benteng Titrasi</b><span>Indikator dan titrasi</span></li>
+    <li class="cb"><span class="node">B</span><b>Sarang Naga</b><span>Boss Battle HOTS: Naga Limbah Netralis</span></li>
+  </ol>
+</section>
+
+<!-- MISI -->
+<section id="misi">
+  <div class="eyebrow">Misi &amp; imbalan</div>
+  <h2>Tujuan tiap zona</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Zona</th><th>Misi utama</th><th>Imbalan</th><th class="num">Waktu</th></tr></thead>
+      <tbody>
+        <tr class="c1"><td><span class="zdot"></span><b>1. Lembah Donor-Akseptor</b></td><td>Membedakan teori Arrhenius dan Brønsted-Lowry, menentukan pasangan asam-basa konjugasi, mengenali spesies amfoter.</td><td>Lencana <i>Pemburu Proton</i>, 100 poin, 1 Kristal Proton</td><td class="num">12 mnt</td></tr>
+        <tr class="c2"><td><span class="zdot"></span><b>2. Hutan Kekuatan</b></td><td>Mengelompokkan asam dan basa kuat atau lemah, membandingkan kekuatan dengan Ka, Kb, dan derajat ionisasi.</td><td>Lencana <i>Penjaga Hutan</i>, 100 poin, Kristal, 1 power-up</td><td class="num">18 mnt</td></tr>
+        <tr class="c3"><td><span class="zdot"></span><b>3. Samudra pH</b></td><td>Menghitung pH dan pOH asam-basa kuat dan lemah, memahami skala logaritmik dan pengaruh pengenceran.</td><td>Lencana <i>Navigator pH</i>, 100 poin, Kristal, 1 power-up</td><td class="num">22 mnt</td></tr>
+        <tr class="c4"><td><span class="zdot"></span><b>4. Benteng Titrasi</b></td><td>Memilih indikator, menyusun prosedur titrasi, menghitung konsentrasi dari data titrasi.</td><td>Lencana <i>Arsitek Titrasi</i>, 100 poin, Kristal terakhir (membuka gerbang Boss)</td><td class="num">15 mnt</td></tr>
+        <tr class="cb"><td><span class="zdot"></span><b>Boss Battle</b></td><td>Menganalisis kasus limbah secara terpadu (HOTS).</td><td>Gelar <i>Master Kimiawan Pulau Proton</i>, hingga 150 poin</td><td class="num">12 mnt</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- BANK SOAL -->
+<section id="soal">
+  <div class="eyebrow">Bank soal &amp; kuis</div>
+  <h2>Lima jenis tantangan di setiap zona</h2>
+  <div class="toolbar">
+    <p class="note">Tiap tantangan bernilai 20 poin, total 100 poin per zona. Kunci tersembunyi sampai dibuka.</p>
+    <button class="toggle" id="toggleKeys" type="button" aria-pressed="false">Tampilkan semua kunci</button>
+  </div>
+</section>
+
+<!-- ZONA 1 -->
+<section class="zone c1" id="z1" style="padding-top:1.5rem">
+  <div class="zonehead">
+    <span class="node">1</span>
+    <div><h3>Zona 1 · Lembah Donor-Akseptor</h3><p>Teori asam-basa, pasangan konjugasi, spesies amfoter</p></div>
+  </div>
+  <div class="qgrid">
+
+    <article class="q">
+      <div class="qtop"><span class="tag">1.1 Pilihan ganda</span><span class="pts">20 poin</span></div>
+      <p>Pada reaksi NH<sub>3</sub> + H<sub>2</sub>O ⇌ NH<sub>4</sub><sup>+</sup> + OH<sup>−</sup>, menurut teori Brønsted-Lowry H<sub>2</sub>O berperan sebagai …</p>
+      <ul class="opts">
+        <li><span>A.</span><span>basa, karena menerima proton</span></li>
+        <li><span>B.</span><span>asam, karena mendonorkan proton</span></li>
+        <li><span>C.</span><span>asam, karena menerima proton</span></li>
+        <li><span>D.</span><span>basa, karena mendonorkan proton</span></li>
+        <li><span>E.</span><span>netral, karena tidak bereaksi</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>B.</b> H<sub>2</sub>O melepas H<sup>+</sup> kepada NH<sub>3</sub>, sehingga H<sub>2</sub>O adalah asam.</span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">1.2 Pilihan ganda kompleks</span><span class="pts">20 poin</span></div>
+      <p>Pilih semua spesies yang dapat bersifat <b>amfoter</b>.</p>
+      <ul class="opts">
+        <li><span class="box"></span><span>H<sub>2</sub>O</span></li>
+        <li><span class="box"></span><span>HCO<sub>3</sub><sup>−</sup></span></li>
+        <li><span class="box"></span><span>HPO<sub>4</sub><sup>2−</sup></span></li>
+        <li><span class="box"></span><span>NH<sub>4</sub><sup>+</sup></span></li>
+        <li><span class="box"></span><span>Cl<sup>−</sup></span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>H<sub>2</sub>O, HCO<sub>3</sub><sup>−</sup>, HPO<sub>4</sub><sup>2−</sup></b></span><span>NH<sub>4</sub><sup>+</sup> hanya dapat mendonorkan proton. Cl<sup>−</sup> hanya dapat menerima proton.</span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">1.3 Benar / salah</span><span class="pts">20 poin</span></div>
+      <ol class="steps" type="a">
+        <li>Teori Arrhenius dapat menjelaskan sifat basa NH<sub>3</sub> karena NH<sub>3</sub> mengandung gugus OH<sup>−</sup>.</li>
+        <li>Pasangan asam-basa konjugasi hanya berbeda satu proton (H<sup>+</sup>).</li>
+        <li>Pada reaksi HCl + H<sub>2</sub>O → H<sub>3</sub>O<sup>+</sup> + Cl<sup>−</sup>, Cl<sup>−</sup> adalah basa konjugasi dari HCl.</li>
+      </ol>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>a. Salah.</b> NH<sub>3</sub> tidak mengandung OH<sup>−</sup>. Sifat basanya dijelaskan oleh teori Brønsted-Lowry.</span><span><b>b. Benar.</b></span><span><b>c. Benar.</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">1.4 Drag and drop</span><span class="pts">20 poin</span></div>
+      <p>Reaksi: <span class="mono">HCl + H<sub>2</sub>O → H<sub>3</sub>O<sup>+</sup> + Cl<sup>−</sup></span>. Seret empat kartu ke kotak yang tepat.</p>
+      <div class="cards"><span class="card">H<sub>2</sub>O</span><span class="card">HCl</span><span class="card">Cl<sup>−</sup></span><span class="card">H<sub>3</sub>O<sup>+</sup></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Asam</th><th>Basa</th><th>Asam konjugasi</th><th>Basa konjugasi</th></tr></thead>
+        <tbody><tr><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td></tr></tbody>
+      </table></div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>Asam: <b>HCl</b> · Basa: <b>H<sub>2</sub>O</b> · Asam konjugasi: <b>H<sub>3</sub>O<sup>+</sup></b> · Basa konjugasi: <b>Cl<sup>−</sup></b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">1.5 Menjodohkan</span><span class="pts">20 poin</span></div>
+      <p>Jodohkan setiap asam dengan basa konjugasinya.</p>
+      <div class="pair">
+        <div><h4>Asam</h4><ol class="steps"><li>HNO<sub>3</sub></li><li>H<sub>2</sub>CO<sub>3</sub></li><li>NH<sub>4</sub><sup>+</sup></li><li>H<sub>2</sub>O</li><li>HS<sup>−</sup></li></ol></div>
+        <div><h4>Basa konjugasi</h4><ol class="steps" type="a"><li>OH<sup>−</sup></li><li>NH<sub>3</sub></li><li>NO<sub>3</sub><sup>−</sup></li><li>S<sup>2−</sup></li><li>HCO<sub>3</sub><sup>−</sup></li></ol></div>
+      </div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>1-c, 2-e, 3-b, 4-a, 5-d</b></span></div></details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ZONA 2 -->
+<section class="zone c2" id="z2" style="padding-top:2rem">
+  <div class="zonehead">
+    <span class="node">2</span>
+    <div><h3>Zona 2 · Hutan Kekuatan</h3><p>Asam dan basa kuat atau lemah, Ka, derajat ionisasi</p></div>
+  </div>
+  <div class="qgrid">
+
+    <article class="q">
+      <div class="qtop"><span class="tag">2.1 Pilihan ganda</span><span class="pts">20 poin</span></div>
+      <p>Larutan HCl 0,1 M dan CH<sub>3</sub>COOH 0,1 M dibandingkan. Pernyataan yang <b>benar</b> adalah …</p>
+      <ul class="opts">
+        <li><span>A.</span><span>[H<sup>+</sup>] keduanya sama karena konsentrasinya sama</span></li>
+        <li><span>B.</span><span>[H<sup>+</sup>] CH<sub>3</sub>COOH lebih besar karena molekulnya lebih besar</span></li>
+        <li><span>C.</span><span>HCl terionisasi sempurna sehingga [H<sup>+</sup>]-nya lebih besar</span></li>
+        <li><span>D.</span><span>CH<sub>3</sub>COOH terionisasi sempurna sehingga pH-nya lebih rendah</span></li>
+        <li><span>E.</span><span>Keduanya memiliki derajat ionisasi 1</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>C.</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">2.2 Pilihan ganda kompleks</span><span class="pts">20 poin</span></div>
+      <p>Pilih semua yang termasuk <b>asam lemah</b>.</p>
+      <ul class="opts">
+        <li><span class="box"></span><span>HF</span></li>
+        <li><span class="box"></span><span>HNO<sub>3</sub></span></li>
+        <li><span class="box"></span><span>CH<sub>3</sub>COOH</span></li>
+        <li><span class="box"></span><span>HBr</span></li>
+        <li><span class="box"></span><span>HCN</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>HF, CH<sub>3</sub>COOH, HCN</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">2.3 Benar / salah</span><span class="pts">20 poin</span></div>
+      <ol class="steps" type="a">
+        <li>Semakin besar nilai Ka, semakin kuat asam tersebut.</li>
+        <li>Asam kuat pasti memiliki konsentrasi yang pekat.</li>
+        <li>Derajat ionisasi (α) basa kuat mendekati 1.</li>
+      </ol>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>a. Benar.</b></span><span><b>b. Salah.</b> Kekuatan asam tidak sama dengan konsentrasi.</span><span><b>c. Benar.</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">2.4 Drag and drop</span><span class="pts">20 poin</span></div>
+      <p>Seret setiap kartu ke kolom yang sesuai.</p>
+      <div class="cards"><span class="card">HI</span><span class="card">HCOOH</span><span class="card">KOH</span><span class="card">NH<sub>3</sub></span><span class="card">Ba(OH)<sub>2</sub></span><span class="card">HCN</span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Asam kuat</th><th>Asam lemah</th><th>Basa kuat</th><th>Basa lemah</th></tr></thead>
+        <tbody><tr><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td></tr></tbody>
+      </table></div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>Asam kuat: <b>HI</b> · Asam lemah: <b>HCOOH, HCN</b> · Basa kuat: <b>KOH, Ba(OH)<sub>2</sub></b> · Basa lemah: <b>NH<sub>3</sub></b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">2.5 Mengurutkan</span><span class="pts">20 poin</span></div>
+      <p>Urutkan dari asam <b>terkuat ke terlemah</b> (konsentrasi sama).</p>
+      <div class="cards">
+        <span class="card">HCN · Ka 4,9×10<sup>−10</sup></span>
+        <span class="card">CH<sub>3</sub>COOH · Ka 1,8×10<sup>−5</sup></span>
+        <span class="card">HF · Ka 6,8×10<sup>−4</sup></span>
+        <span class="card">HCOOH · Ka 1,8×10<sup>−4</sup></span>
+      </div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>HF → HCOOH → CH<sub>3</sub>COOH → HCN</b></span></div></details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ZONA 3 -->
+<section class="zone c3" id="z3" style="padding-top:2rem">
+  <div class="zonehead">
+    <span class="node">3</span>
+    <div><h3>Zona 3 · Samudra pH</h3><p>Perhitungan pH dan pOH, skala logaritmik, pengenceran</p></div>
+  </div>
+  <div class="qgrid">
+
+    <article class="q">
+      <div class="qtop"><span class="tag">3.1 Pilihan ganda</span><span class="pts">20 poin</span></div>
+      <p>pH larutan Ba(OH)<sub>2</sub> 0,005 M pada 25 °C adalah …</p>
+      <ul class="opts">
+        <li><span>A.</span><span>2</span></li><li><span>B.</span><span>5</span></li><li><span>C.</span><span>9</span></li><li><span>D.</span><span>12</span></li><li><span>E.</span><span>13</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>D.</b></span><div class="work"><span>[OH<sup>−</sup>] = 2 × 0,005 = 10<sup>−2</sup> M</span><span>pOH = 2 → pH = 14 − 2 = 12</span></div></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">3.2 Pilihan ganda kompleks</span><span class="pts">20 poin</span></div>
+      <p>Pilih semua larutan yang memiliki <b>pH = 3</b>.</p>
+      <ul class="opts">
+        <li><span class="box"></span><span>HCl 0,001 M</span></li>
+        <li><span class="box"></span><span>CH<sub>3</sub>COOH 0,1 M (Ka = 1×10<sup>−5</sup>)</span></li>
+        <li><span class="box"></span><span>NaOH 0,001 M</span></li>
+        <li><span class="box"></span><span>CH<sub>3</sub>COOH 0,01 M (Ka = 1×10<sup>−5</sup>)</span></li>
+        <li><span class="box"></span><span>HNO<sub>3</sub> 0,001 M</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>HCl 0,001 M, CH<sub>3</sub>COOH 0,1 M, HNO<sub>3</sub> 0,001 M</b></span><div class="work"><span>CH<sub>3</sub>COOH 0,1 M: [H<sup>+</sup>] = √(10<sup>−5</sup> × 10<sup>−1</sup>) = 10<sup>−3</sup> → pH 3</span><span>CH<sub>3</sub>COOH 0,01 M → pH 3,5</span><span>NaOH 0,001 M → pH 11</span></div></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">3.3 Benar / salah</span><span class="pts">20 poin</span></div>
+      <ol class="steps" type="a">
+        <li>Larutan pH 5 memiliki [H<sup>+</sup>] 100 kali lebih besar daripada larutan pH 7.</li>
+        <li>Larutan HCl 0,1 M diencerkan 10 kali, pH-nya menjadi 3.</li>
+        <li>Pada 25 °C, pH + pOH = 14.</li>
+      </ol>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>a. Benar.</b></span><span><b>b. Salah.</b> pH menjadi 2, karena [H<sup>+</sup>] turun dari 10<sup>−1</sup> ke 10<sup>−2</sup> M.</span><span><b>c. Benar.</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">3.4 Drag and drop</span><span class="pts">20 poin</span></div>
+      <p>Lengkapi langkah menghitung pH NH<sub>3</sub> 0,1 M (Kb = 1×10<sup>−5</sup>) dengan kartu berikut.</p>
+      <div class="cards"><span class="card">√(Kb × M)</span><span class="card">10<sup>−3</sup></span><span class="card">3</span><span class="card">11</span><span class="card">−log</span></div>
+      <div class="work">
+        <span>1. [OH<sup>−</sup>] = <span class="blank">[ ? ]</span> = <span class="blank">[ ? ]</span> M</span>
+        <span>2. pOH = <span class="blank">[ ? ]</span> [OH<sup>−</sup>] = <span class="blank">[ ? ]</span></span>
+        <span>3. pH = 14 − pOH = <span class="blank">[ ? ]</span></span>
+      </div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><div class="work"><span>1. [OH<sup>−</sup>] = √(Kb × M) = 10<sup>−3</sup> M</span><span>2. pOH = −log [OH<sup>−</sup>] = 3</span><span>3. pH = 14 − 3 = 11</span></div></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">3.5 Mengurutkan</span><span class="pts">20 poin</span></div>
+      <p>Urutkan dari pH <b>terkecil ke terbesar</b> (semua 0,1 M).</p>
+      <div class="cards"><span class="card">NaOH</span><span class="card">NaCl</span><span class="card">CH<sub>3</sub>COOH (Ka = 10<sup>−5</sup>)</span><span class="card">HCl</span><span class="card">NH<sub>3</sub> (Kb = 10<sup>−5</sup>)</span></div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>HCl (1) → CH<sub>3</sub>COOH (3) → NaCl (7) → NH<sub>3</sub> (11) → NaOH (13)</b></span></div></details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ZONA 4 -->
+<section class="zone c4" id="z4" style="padding-top:2rem">
+  <div class="zonehead">
+    <span class="node">4</span>
+    <div><h3>Zona 4 · Benteng Titrasi</h3><p>Indikator, prosedur titrasi, perhitungan konsentrasi</p></div>
+  </div>
+  <div class="qgrid">
+
+    <article class="q">
+      <div class="qtop"><span class="tag">4.1 Pilihan ganda</span><span class="pts">20 poin</span></div>
+      <p>Sebanyak 25 mL larutan HCl dititrasi dengan NaOH 0,1 M dan memerlukan 20 mL NaOH untuk mencapai titik akhir. Konsentrasi HCl adalah …</p>
+      <ul class="opts">
+        <li><span>A.</span><span>0,04 M</span></li><li><span>B.</span><span>0,05 M</span></li><li><span>C.</span><span>0,08 M</span></li><li><span>D.</span><span>0,10 M</span></li><li><span>E.</span><span>0,125 M</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>C.</b></span><div class="work"><span>n NaOH = 20 mL × 0,1 M = 2 mmol = n HCl</span><span>M HCl = 2 mmol / 25 mL = 0,08 M</span></div></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">4.2 Pilihan ganda kompleks</span><span class="pts">20 poin</span></div>
+      <p>Pilih semua pernyataan yang benar tentang titrasi asam-basa.</p>
+      <ul class="opts">
+        <li><span class="box"></span><span>Pada titrasi asam kuat dengan basa kuat, titik ekuivalen berada di pH 7 (25 °C).</span></li>
+        <li><span class="box"></span><span>Fenolftalein cocok untuk titrasi HCl dengan NaOH.</span></li>
+        <li><span class="box"></span><span>Titik akhir titrasi selalu sama persis dengan titik ekuivalen.</span></li>
+        <li><span class="box"></span><span>Indikator dipilih agar trayek pH-nya berada pada daerah lonjakan pH.</span></li>
+        <li><span class="box"></span><span>Titik ekuivalen titrasi CH<sub>3</sub>COOH dengan NaOH berada di pH 7.</span></li>
+      </ul>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>Pernyataan 1, 2, dan 4.</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">4.3 Benar / salah</span><span class="pts">20 poin</span></div>
+      <ol class="steps" type="a">
+        <li>Titik ekuivalen titrasi asam lemah dengan basa kuat berada di pH &gt; 7.</li>
+        <li>Metil merah (trayek 4,2–6,3) cocok untuk titrasi CH<sub>3</sub>COOH dengan NaOH.</li>
+      </ol>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>a. Benar.</b></span><span><b>b. Salah.</b> Trayeknya jauh di bawah pH ekuivalen, sehingga fenolftalein lebih cocok.</span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">4.4 Drag and drop</span><span class="pts">20 poin</span></div>
+      <p>Seret indikator ke jenis titrasi yang paling sesuai.</p>
+      <div class="cards"><span class="card">Fenolftalein · 8,3–10</span><span class="card">Metil merah · 4,2–6,3</span><span class="card">Bromtimol biru · 6,0–7,6</span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Titrasi</th><th>Indikator</th></tr></thead>
+        <tbody>
+          <tr><td>HCl + NaOH</td><td class="blank">……</td></tr>
+          <tr><td>CH<sub>3</sub>COOH + NaOH</td><td class="blank">……</td></tr>
+          <tr><td>NH<sub>3</sub> + HCl</td><td class="blank">……</td></tr>
+        </tbody>
+      </table></div>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>HCl + NaOH: <b>bromtimol biru</b> (fenolftalein juga dapat diterima)</span><span>CH<sub>3</sub>COOH + NaOH: <b>fenolftalein</b></span><span>NH<sub>3</sub> + HCl: <b>metil merah</b></span></div></details>
+    </article>
+
+    <article class="q">
+      <div class="qtop"><span class="tag">4.5 Mengurutkan</span><span class="pts">20 poin</span></div>
+      <p>Urutkan langkah titrasi dengan benar.</p>
+      <ol class="steps" type="a">
+        <li>Catat volume akhir buret, lalu hitung konsentrasi.</li>
+        <li>Teteskan titran sambil dikocok sampai warna berubah permanen.</li>
+        <li>Pipet larutan asam ke erlenmeyer, tambahkan indikator.</li>
+        <li>Bilas buret dengan larutan NaOH.</li>
+        <li>Isi buret dengan NaOH dan catat volume awal.</li>
+      </ol>
+      <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span><b>d → e → c → b → a</b></span></div></details>
+    </article>
+
+  </div>
+</section>
+
+<!-- BOSS -->
+<section id="boss">
+  <div class="eyebrow">Ujian akhir peta</div>
+  <h2>Boss Battle: Naga Limbah Netralis</h2>
+  <div class="boss cb">
+    <div class="case">
+      <p>Sang naga menumpahkan dua cairan misterius, <b>X</b> dan <b>Y</b>, ke sungai. Keduanya bersifat asam dengan konsentrasi sama, <b>0,1 M</b>. Tim lab mencatat <b>pH X = 1</b> dan <b>pH Y = 3</b>. Untuk menjinakkan limbah, 20 mL tiap larutan akan dititrasi dengan NaOH 0,1 M.</p>
+    </div>
+    <div class="fase">
+      <article class="q c1">
+        <div class="qtop"><span class="tag">Fase 1 · Identifikasi</span><span class="pts">30 poin</span></div>
+        <p>Tentukan mana asam kuat dan mana asam lemah. Buktikan dengan perhitungan [H<sup>+</sup>].</p>
+        <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>X: [H<sup>+</sup>] = 10<sup>−1</sup> M, sama dengan konsentrasi asam, jadi terionisasi sempurna: <b>asam kuat</b>.</span><span>Y: [H<sup>+</sup>] = 10<sup>−3</sup> M, jauh lebih kecil dari 0,1 M, jadi terionisasi sebagian: <b>asam lemah</b>.</span></div></details>
+      </article>
+      <article class="q c2">
+        <div class="qtop"><span class="tag">Fase 2 · Kuantifikasi</span><span class="pts">30 poin</span></div>
+        <p>Hitung nilai Ka larutan Y.</p>
+        <details class="key"><summary>Kunci jawaban</summary><div class="ans"><div class="work"><span>Ka = [H<sup>+</sup>]² / (M − [H<sup>+</sup>]) ≈ (10<sup>−3</sup>)² / 0,1</span><span>Ka = 1×10<sup>−5</sup></span></div></div></details>
+      </article>
+      <article class="q c3">
+        <div class="qtop"><span class="tag">Fase 3 · Prediksi</span><span class="pts">30 poin</span></div>
+        <p>Berapa volume NaOH untuk menetralkan X dan Y? Apakah sama? Jelaskan.</p>
+        <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>Mol kedua asam sama (20 mL × 0,1 M = 2 mmol), sehingga NaOH yang dibutuhkan sama: <b>20 mL</b>. Kekuatan asam tidak mengubah jumlah ekuivalen stoikiometri.</span></div></details>
+      </article>
+      <article class="q c4">
+        <div class="qtop"><span class="tag">Fase 4 · Keputusan</span><span class="pts">30 poin</span></div>
+        <p>Pilih indikator untuk titrasi Y (fenolftalein atau metil merah) dan beri alasan berdasarkan pH titik ekuivalen.</p>
+        <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>Titik ekuivalen Y berupa garam bersifat basa (hidrolisis anion), pH &gt; 7, jadi <b>fenolftalein</b>. Metil merah berubah warna terlalu dini.</span></div></details>
+      </article>
+      <article class="q cb">
+        <div class="qtop"><span class="tag">Serangan akhir</span><span class="pts">30 poin</span></div>
+        <p>Gambar sketsa kurva titrasi X dan Y pada satu grafik. Tandai perbedaan pH awal dan pH ekuivalen.</p>
+        <details class="key"><summary>Kunci jawaban</summary><div class="ans"><span>Kurva X mulai di pH 1 dan ekuivalen di pH 7. Kurva Y mulai di pH 3 dan ekuivalen di pH &gt; 7. Kedua kurva mencapai titik ekuivalen pada volume 20 mL.</span></div></details>
+      </article>
+    </div>
+    <p class="note">Rubrik per fase: 30 = benar lengkap dengan alasan, 20 = jawaban benar tanpa alasan, 10 = sebagian benar. Total 150 poin.</p>
+  </div>
+</section>
+
+<!-- GURU -->
+<section id="guru">
+  <div class="eyebrow">Mekanik permainan</div>
+  <h2>Panduan guru</h2>
+
+  <div class="cols">
+    <div class="panel">
+      <h3>Aturan pergerakan</h3>
+      <ul>
+        <li>Tiap tim (4–5 siswa) memegang papan peta dan satu token.</li>
+        <li>Token pindah ke zona berikutnya setelah tim menyelesaikan 5 tantangan di zona itu.</li>
+        <li><b>Syarat lulus zona:</b> skor minimal 70 dari 100. PGK, drag and drop, dan menjodohkan boleh diberi nilai parsial.</li>
+        <li>Skor di bawah 70 membawa tim ke <b>Pos Perbaikan</b>: guru memberi petunjuk singkat (maksimal 2 menit), lalu tim mengulang 2 soal pengganti.</li>
+        <li><b>Syarat masuk Boss Battle:</b> 4 Kristal Proton dan total poin minimal 280.</li>
+        <li>HP naga setara 150 poin. Tiap fase yang dijawab benar mengurangi HP. Jika HP habis, tim menang.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Power-up</h3>
+      <ul>
+        <li><b>Petunjuk Alkemis:</b> satu petunjuk dari guru untuk satu soal.</li>
+        <li><b>Tambah Waktu:</b> tambahan 1 menit untuk satu tantangan.</li>
+        <li><b>Perisai Konjugat:</b> membatalkan satu pengurangan poin akibat jawaban salah.</li>
+      </ul>
+      <p class="note">Power-up diperoleh dari imbalan Zona 2 dan Zona 3.</p>
+    </div>
+  </div>
+
+  <h3>Penilaian</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Komponen</th><th class="num">Poin maks.</th><th class="num">Bobot</th></tr></thead>
+    <tbody>
+      <tr><td>Skor zona 1–4</td><td class="num">400</td><td class="num">60%</td></tr>
+      <tr><td>Boss Battle</td><td class="num">150</td><td class="num">25%</td></tr>
+      <tr><td>Kerja sama dan refleksi (observasi guru)</td><td class="num">–</td><td class="num">15%</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Alur waktu (90 menit)</h3>
+  <ol class="timeline">
+    <li><span class="t">00–05</span><span>Narasi, pembagian tim, penjelasan aturan</span><span class="d">5 mnt</span></li>
+    <li><span class="t">05–17</span><span>Zona 1 · Lembah Donor-Akseptor</span><span class="d">12 mnt</span></li>
+    <li><span class="t">17–35</span><span>Zona 2 · Hutan Kekuatan</span><span class="d">18 mnt</span></li>
+    <li><span class="t">35–57</span><span>Zona 3 · Samudra pH</span><span class="d">22 mnt</span></li>
+    <li><span class="t">57–72</span><span>Zona 4 · Benteng Titrasi</span><span class="d">15 mnt</span></li>
+    <li><span class="t">72–84</span><span>Boss Battle</span><span class="d">12 mnt</span></li>
+    <li><span class="t">84–90</span><span>Penghargaan dan refleksi: “Konsep mana yang paling sulit dan mengapa?”</span><span class="d">6 mnt</span></li>
+  </ol>
+
+  <h3>Tips untuk guru</h3>
+  <div class="cols">
+    <div class="panel"><h3>Persiapan</h3><p>Cetak papan peta dan kartu soal, atau pindahkan ke versi digital seperti Wordwall, Quizizz, Genially, atau Google Slides interaktif.</p></div>
+    <div class="panel"><h3>Diferensiasi</h3><p>Tim yang cepat mengerjakan misi bonus, misalnya menghitung pH campuran asam kuat dan basa kuat. Tim yang kesulitan diberi kartu rumus.</p></div>
+    <div class="panel"><h3>Miskonsepsi</h3><ul><li>Menyamakan kekuatan dengan konsentrasi.</li><li>Lupa valensi basa, misalnya Ba(OH)<sub>2</sub>.</li><li>Mengira pengenceran 10× mengubah pH sebesar 10.</li></ul></div>
+    <div class="panel"><h3>Asumsi suhu</h3><p>Semua soal pada 25 °C, dengan Kw = 10<sup>−14</sup>.</p></div>
+    <div class="panel"><h3>Tindak lanjut praktikum</h3><p>Lanjutkan Zona 4 dengan titrasi nyata, atau uji indikator alami dari kol ungu dan kunyit.</p></div>
+  </div>
+</section>
+
+<footer>Acid-Base Quest · Kimia kelas XI (Fase F) · Larutan asam basa</footer>
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll('nav.jump button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var el = document.getElementById(b.getAttribute('data-go'));
+      if (el) el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    });
+  });
+  var toggle = document.getElementById('toggleKeys');
+  var keys = Array.prototype.slice.call(document.querySelectorAll('details.key'));
+  function sync() {
+    var all = keys.every(function (d) { return d.open; });
+    toggle.setAttribute('aria-pressed', all ? 'true' : 'false');
+    toggle.textContent = all ? 'Sembunyikan semua kunci' : 'Tampilkan semua kunci';
+  }
+  toggle.addEventListener('click', function () {
+    var open = toggle.getAttribute('aria-pressed') !== 'true';
+    keys.forEach(function (d) { d.open = open; });
+    sync();
+  });
+  keys.forEach(function (d) { d.addEventListener('toggle', sync); });
+})();
+</script>
+
+</body></html>
